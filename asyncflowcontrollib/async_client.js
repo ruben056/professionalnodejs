@@ -61,3 +61,50 @@ async.waterfall([
     }
     console.log("3^4 : %d", body);
   });
+
+// QUEUE
+// when you want to controle how many concurrent jobs can run
+// the results will NOT be ordered in the order of the queue!!
+var maxConcurrency = 5;
+var queue = async.queue(squareViaServer, maxConcurrency);
+[1,2,3,4,5,6,7,8,9,10].forEach(function(curNr){
+  queue.push(curNr, function(err, result){
+    if(err)
+      throw err;
+    console.log(curNr + '^2 = %d', result);
+  })  
+});
+queue.saturated = function(){
+  console.log("Queue is satured");
+}
+queue.empty = function(){
+  console.log("Last item in queue past to worker");
+}
+queue.drain = function(){
+  console.log("Worker finished last item in queue");
+}
+
+// TODO FOREACH DOESNT SEEM TO GIVE THE RESULTS I WANT...
+// TODO : DEBUG WHEN HAVING THE TIME
+// see professional nodejs page 190
+// async foreach:
+// basically the functionality per iteraiton is done async...
+var collection = [1,2,3,4,5];
+var results = {};
+async.forEach(collection, squareViaServer, function(err, results){
+  if(err){
+    throw err;
+  }
+  console.log('results foreach : %j', results);
+});
+// variant that executs logic asynchronously but not parallel with each other
+// this is usefull for example when B depends on result of A etc...
+async.forEachSeries(collection, squareViaServer, function(err, results){
+  if(err){
+    throw err;
+  }
+  console.log('results foreachSeries : %j', results);
+});
+
+
+async.map([22,24], squareViaServer, done);

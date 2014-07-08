@@ -1,0 +1,91 @@
+<html>
+	<head>
+			<title>Socket simple chatroom</title>
+			<script src="http://localhost:4000/socket.io/socket.io.js"></script>			
+	</head>
+	<style type="text/css">
+	#input {
+		width: 200px;
+	}
+	#messages {
+		position: fixed;
+		top: 40px;
+		bottom: 8px;
+		left: 8px;
+		right: 8px;
+		border: 1px solid #EEEEEE;
+		padding: 8px;
+	}
+	</style>
+
+	<body>
+		<input type='text' id='input'/>
+		<div id='messages'></div>
+
+		<script>
+			/**adds a div to the messages container for each message received*/			
+			function addMessage() {
+				
+				var messagesContainerEl = document.getElementById('messages');
+				var lastMessageElement = null;
+				
+				return function(message){
+					var newMessageElement = document.createElement('div');
+					var newMessageText = document.createTextNode(message);
+					newMessageElement.appendChild(newMessageText);
+					messagesContainerEl.insertBefore(newMessageElement, lastMessageElement);
+					lastMessageElement = newMessageElement;
+				}
+			}
+
+			/** Wen pressing enter on the inputElement the msg is send to the server and broadcasted */
+			function sendMsgOnKeyDownEvent(){
+
+				var inputElement = document.getElementById('input');			
+				var KEYCODE_ENTER = 13;	
+
+				inputElement.onkeydown = function(keyBoardEvent){
+					if(keyBoardEvent.keyCode === KEYCODE_ENTER){
+						var msg = inputElement.value;
+						commandMatch = msg.match(/^\/(\w*)(.*)/);
+						if(commandMatch){
+							var cmd = commandMatch[1];
+							var cmdArgs = commandMatch[2];
+							if(cmd === 'j'){
+								socket.emit('join', cmdArgs)
+							}else{
+								alert('Unknown command :' + cmd);
+							}
+						}
+						else{
+							socket.emit('clientMsg', msg);	
+						}						
+						inputElement.value = '';		
+						return false; // this is probably to prevent default??
+					}
+					return true;
+				};	
+			}	
+			
+			/* bootstrap connection:
+			 - connect to server
+			 - server request login so user is prompted for username and this is send to server
+			 - start listening on certain messages from the server
+			 */
+			var socket = io.connect('http://localhost:4000');
+			function login(msg){
+				var userName = prompt(msg);
+				if(userName){
+					socket.emit('loginReply', userName);	
+					socket.on('serverMsg', addMessage());
+					sendMsgOnKeyDownEvent();
+				}
+				else{
+					login(msg);
+				}				
+			}
+			socket.on('loginRequest', login);
+			
+		</script>
+	</body>
+</html>

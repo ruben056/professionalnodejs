@@ -1,4 +1,4 @@
-var port = process.argv[2] && parseInt(process.argv[2]) || 8080;
+var port = process.argv[2] && parseInt(process.argv[2]) || 4040;
 
 require('http').createServer(function(req, resp){
   var receivedData = '';
@@ -17,7 +17,7 @@ require('http').createServer(function(req, resp){
     }
     else
     {
-      resp.end('Sample : curl --data 5 http://localhost:8080\n');
+      resp.end('Sample : curl --data 5 http://localhost:4040\n');
     }
   })
 }).listen(port);
